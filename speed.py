@@ -11,5 +11,5 @@ def timer_func(func):
         result = func(*args, **kwargs)
         t2 = time()
         print(result)
-        print(f'{Fore.GREEN}Function {func.__name__!r} executed in {(t2-t1):.4f}s{Style.RESET_ALL}')
+        print(f'{Fore.GREEN}Function {func.__name__!r} executed in {(t2-t1):.6f}s{Style.RESET_ALL}')
     return wrap_func
