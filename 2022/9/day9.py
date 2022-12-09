@@ -17,30 +17,36 @@ class Location:
 
 class KnotModel:
 
-    def __init__(self, width: int, height: int):
+    def __init__(self, width: int, height: int, knots: int):
         self.grid = np.zeros( (width, height) )
+        self.knots = knots
         self.head = None
-        self.tail = None
+        self.tail = []
     
     def set_start(self, x: int, y: int):
         self.grid[x][y] = 1
         self.head = Location(x,y)
-        self.tail = Location(x,y)
+        for _ in range(self.knots):
+            self.tail.append( Location(x,y) )
     
     def move_tail(self):
-        if self.head.distance(self.tail) >= 2.0:
-            x_diff = self.head.x - self.tail.x
-            y_diff = self.head.y - self.tail.y
-            # Diagonal
-            if abs(x_diff) > 0 and abs(y_diff) > 0:
-                self.tail.y += np.sign(y_diff)
-                self.tail.x += np.sign(x_diff)
-            # One direction
-            elif x_diff == 0:
-                self.tail.y += np.sign(y_diff)
-            else:
-                self.tail.x += np.sign(x_diff)
-        self.grid[self.tail.x][self.tail.y] += 1
+        start = self.head
+        for knot in self.tail:
+            end = knot
+            if start.distance(end) >= 2.0:
+                x_diff = start.x - end.x
+                y_diff = start.y - end.y
+                # Diagonal
+                if abs(x_diff) > 0 and abs(y_diff) > 0:
+                    end.y += np.sign(y_diff)
+                    end.x += np.sign(x_diff)
+                # One direction
+                elif x_diff == 0:
+                    end.y += np.sign(y_diff)
+                else:
+                    end.x += np.sign(x_diff)
+            start = knot
+        self.grid[self.tail[-1].x][self.tail[-1].y] += 1
 
     def move_head(self, direction: str, steps: int):
         is_x = True
@@ -73,7 +79,7 @@ def getActions() -> list:
             actions.append( [ int(x) if x.isnumeric() else x for x in line.strip().split(' ') ] )
     return actions
 
-def createGrid( actions: list) -> KnotModel:
+def createGrid( actions: list, knots: int) -> KnotModel:
     x = [0]
     y = [0]
     currX = currY = 0
@@ -91,26 +97,28 @@ def createGrid( actions: list) -> KnotModel:
     y_min = min(y)
     y_len = max(y) - min(y) + 1
 
-    model = KnotModel(x_len, y_len)
+    model = KnotModel(x_len, y_len, knots=knots)
     model.set_start(-x_min, -min(y))
     return model
-
-
 
 @timer_func
 def first_star():
     actions = getActions()
-    model = createGrid(actions)
+    model = createGrid(actions, knots=1)
     for action in actions:
         model.move_head( action[0], action[1] )
 
-    return f'The number of positions the tail visited is {model.get_num_visited()}'
+    return f'1. The number of positions the tail visited is {model.get_num_visited()}'
 
-# @timer_func
-# def second_star():
+@timer_func
+def second_star():
+    actions = getActions()
+    model = createGrid(actions, knots=9)
+    for action in actions:
+        model.move_head( action[0], action[1] )
 
-#     return f'2. The best scenic score is {best_score}'
+    return f'2. The number of positions the tail visited is {model.get_num_visited()}'
 
 if __name__ == '__main__':
     first_star()
-#     second_star()
+    second_star()
